@@ -1,4 +1,5 @@
 import model.Employee;
+import model.EmployeePredicates;
 import model.dao.DepartmentDao;
 import model.dao.EmployeeDao;
 import model.dao.LoginDao;
@@ -7,6 +8,7 @@ import model.dao.ProfessionDao;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -23,10 +25,12 @@ public class Application {
     private final EmployeeDao employeeDao;
     List<Employee> data;
     private final Scanner scanner;
+    private final Scanner scan;
     private boolean running;
     private String currentUser;
-    List <Employee> findEmployee;
+    List <Employee> findEmployee = new ArrayList<>();
     String punktName;
+    String str;
 
     public Application(LoginDao loginDao,DepartmentDao departmentDao,
                        ProfessionDao professionDao,EmployeeDao employeeDao) {
@@ -35,6 +39,7 @@ public class Application {
         this.professionDao = professionDao;
         this.employeeDao = employeeDao;
         this.scanner = new Scanner(System.in);
+        this.scan = new Scanner(System.in);
         this.running = true;
         this.currentUser = null;
         login = loginDao.allLogin();
@@ -131,6 +136,7 @@ public class Application {
         int punkt;
         boolean quit = false;
         punkt=5;
+        EmployeePredicates predicates = new EmployeePredicates();
         while(true){
             System.out.println("Найти сотрудника");
 
@@ -152,7 +158,8 @@ public class Application {
                 case 1:
                     punktName = "по фамилии";
                     System.out.println("Введите Фамилию");
-                    findEmployee(findEmployee);
+                    str = scan.nextLine();
+                    findEmployee(predicates.surname(str));
                     break;
                 case 2:
                     punktName = "по должности";
@@ -170,19 +177,16 @@ public class Application {
             if (quit) break;
         }
     }
-    public void findEmployee(List <Employee> findEmployee,Predicate<Employee> predicate){
-
-        String str = scanner.nextLine();
+    public void findEmployee(Predicate<Employee> predicate){
         findEmployee=data.stream()
-//                .filter(arr->arr.getSurname().equals(str))
                 .filter(predicate)
                 .collect(Collectors.toList());
         findEmployee.stream()
                 .forEach(System.out::println);
-        String filename="writeReports\\findEmployeeSurname.txt";
-        writeFindEmployee(filename,str);
+        String filename="reports\\findEmployeeSurname.txt";
+        writeFindEmployee(filename);
     }
-    public void writeFindEmployee(String filename,String str){
+    public void writeFindEmployee(String filename){
         try(FileOutputStream fos = new FileOutputStream(filename);
             PrintWriter pw = new PrintWriter(fos)){
             pw.println("Список сотрудников "+punktName+": "+str);
